@@ -5,6 +5,8 @@ const bodyParser         = require('body-parser');
 const app                = express();
 const port               = 3010;
 
+const AccountRoute = require("./endpoints/account.js")
+
 app.use(cookieParser());
 
 app.use(bodyParser.urlencoded({
@@ -34,6 +36,7 @@ onStart = async() => {
 onStart()
 
 //Routing for endpoints
+app.use("/account", AccountRoute);
 
 app.all("*", async(req, res) => {
     res.status(404);
