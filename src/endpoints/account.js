@@ -12,7 +12,9 @@ AccountRouter.post("/login", async(req, res) => {
         req.body.pass === "password") {
         res.status(200);
         res.send({"response": "logged in"})
+        return;
     }
     res.status(401);
     res.send({"response": "Invalid Account Information"})
+    return;
 })
