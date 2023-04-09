@@ -22,9 +22,10 @@ AccountRouter.post("/login", async(req, res) => {
     }
 
     let Account = db.Accounts.table;
-    console.log(Account);
-    if(Account["password"] === hash(req.pass, `${req.name}8492${req.pass}`)) {
-        let SID = createSession(req.name);
+    Account = Account[req.body.name];
+
+    if(Account["password"] === hash(req.body.pass, `${req.body.name}8492${req.body.pass}`)) {
+        let SID = createSession(req.body.name);
         res.status(200);
         res.send({"response": "Logged In", "session": SID});
         return;
