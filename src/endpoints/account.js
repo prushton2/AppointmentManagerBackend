@@ -59,8 +59,8 @@ AccountRouter.get("/logout", async(req, res) => {
     destroySession(req.cookies.auth);
 
     res.status(200);
-    res.cookies("auth", "", {"httpOnly": true, "path": "/"})
-    res.send({"response":db.Accounts.table[req.cookies.auth.split(".")[0]]});
+    res.cookie("auth", "", {"httpOnly": true, "path": "/"})
+    res.send({"response": "Logged Out"});
     return;
 })
 
@@ -81,12 +81,17 @@ function createSession(name) {
     return `${name}.${SID}`;
 }
 
-function destroySession(SID) {
+function destroySession(FSID) {
     db.Accounts.load();
-    let account = db.Accounts.table[SID.split(".")[0]];
-    let index = account.sessions.indexOf(SID);
-    let newSessions = account.sessions.splice(index, 1)
-    db.Accounts.set(SID.split(".")[0], {"sessions": newSessions});
+
+    let name = FSID.split(".")[0];
+    let SID  = FSID.split(".")[1];
+
+    let account = db.Accounts.table[name];
+    
+    let newSessions = account.sessions.filter((id) => {return id !== `${auth.hash(name, SID)}.${auth.hash(SID, name)}` })   
+
+    db.Accounts.set(name, {"sessions": newSessions});
     db.Accounts.save();
     return;
 }
