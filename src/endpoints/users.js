@@ -16,7 +16,8 @@ UsersRouter.get("/get", async(req, res) => {
 
     for(let i in db.Accounts.table) {
         allUsers.push({
-            "name": i,
+            "id": i,
+            "name": db.Accounts.table[i].name,
             "permissions": db.Accounts.table[i].permissions,
             "email": db.Accounts.table[i].email
         })
