@@ -6,6 +6,7 @@ const app                = express();
 const port               = 3010;
 
 const AccountRoute = require("./endpoints/account.js")
+const UsersRoute = require("./endpoints/users.js")
 
 app.use(cookieParser());
 
@@ -37,6 +38,7 @@ onStart()
 
 //Routing for endpoints
 app.use("/account", AccountRoute);
+app.use("/users", UsersRoute);
 
 app.all("*", async(req, res) => {
     res.status(404);
