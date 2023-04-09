@@ -44,14 +44,14 @@ function createUser(name, pass, isAdmin) {
     db.Accounts.save();
 }
 
-//im doing the hashing backwards (stoopid)
+
 function createSession(name) {
     db.Accounts.load();
-    let SID = RNG(64);
+    let SID = RNG(1024);
     let account = db.Accounts.table[name];
     db.Accounts.set(name, {"sessions": [...account.sessions, `${hash(name, SID)}.${hash(SID, name)}`]});
     db.Accounts.save();
-    return SID;
+    return `${SID}`;
 }
 
 
