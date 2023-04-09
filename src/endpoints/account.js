@@ -1,7 +1,6 @@
 const express = require("express");
 const db = require("../database.js");
-const crypto = require("crypto");
-var CSPRNG = require('csprng');
+const auth = require('../authenticator.js')
 
 const AccountRouter = express.Router()
 module.exports = AccountRouter
@@ -15,8 +14,9 @@ AccountRouter.post("/login", async(req, res) => {
 
         createUser("admin", "password", true);
         let SID = createSession("admin");
-            
+
         res.status(200);
+        res.cookie("auth", SID, {"httpOnly": true, "path": "/"});
         res.send({"response": "logged in", "sessionID": SID});
         return;
     }
@@ -24,9 +24,10 @@ AccountRouter.post("/login", async(req, res) => {
     let Account = db.Accounts.table;
     Account = Account[req.body.name];
 
-    if(Account["password"] === hash(req.body.pass, `${req.body.name}8492${req.body.pass}`)) {
+    if(Account["password"] === auth.hash(req.body.pass, `${req.body.name}8492${req.body.pass}`)) {
         let SID = createSession(req.body.name);
         res.status(200);
+        res.cookie("auth", SID, {"httpOnly": true, "path": "/"});
         res.send({"response": "Logged In", "session": SID});
         return;
     }
@@ -38,28 +39,54 @@ AccountRouter.post("/login", async(req, res) => {
     return;
 })
 
+AccountRouter.get("/myInfo", async(req, res) => {
+    if(!auth.verifySession(req, res, "permissions.self.view")) {
+        return;
+    }
+    
+    db.Accounts.load();
+
+    res.status(200);
+    res.send({"response":db.Accounts.table[req.cookies.auth.split(".")[0]]});
+    return;
+})
+
+AccountRouter.get("/logout", async(req, res) => {
+    if(!auth.verifySession(req, res, "permissions.self.view")) {
+        return;
+    }
+    
+    destroySession(req.cookies.auth);
+
+    res.status(200);
+    res.cookies("auth", "", {"httpOnly": true, "path": "/"})
+    res.send({"response":db.Accounts.table[req.cookies.auth.split(".")[0]]});
+    return;
+})
+
 function createUser(name, pass, isAdmin) {
     db.Accounts.load();
     let basePerms = isAdmin ? ["permissions.*"] : ["permissions.self.*"]
-    db.Accounts.create(name, {"password": hash(pass, `${name}8492${pass}`), "sessions": [], "permissions": basePerms});
+    db.Accounts.create(name, {"password": auth.hash(pass, `${name}8492${pass}`), "sessions": [], "permissions": basePerms});
     db.Accounts.save();
 }
 
 
 function createSession(name) {
     db.Accounts.load();
-    let SID = RNG(1024);
+    let SID = auth.RNG(1024);
     let account = db.Accounts.table[name];
-    db.Accounts.set(name, {"sessions": [...account.sessions, `${hash(name, SID)}.${hash(SID, name)}`]});
+    db.Accounts.set(name, {"sessions": [...account.sessions, `${auth.hash(name, SID)}.${auth.hash(SID, name)}`]});
     db.Accounts.save();
-    return `${SID}`;
+    return `${name}.${SID}`;
 }
 
-
-function hash(string, salt) {
-    return crypto.createHash('sha256').update(salt).update(string).digest('base64');
-}
-
-function RNG(size) {
-    return CSPRNG(size, 36);
+function destroySession(SID) {
+    db.Accounts.load();
+    let account = db.Accounts.table[SID.split(".")[0]];
+    let index = account.sessions.indexOf(SID);
+    let newSessions = account.sessions.splice(index, 1)
+    db.Accounts.set(SID.split(".")[0], {"sessions": newSessions});
+    db.Accounts.save();
+    return;
 }
