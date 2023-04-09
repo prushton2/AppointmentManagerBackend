@@ -12,8 +12,8 @@ AccountRouter.post("/login", async(req, res) => {
         req.body.name === "admin" &&
         req.body.pass === "password") {
 
-        createUser("admin", "password", true);
-        let SID = createSession("admin");
+        createUser("0", "admin", "password", true);
+        let SID = createSession("0");
 
         res.status(200);
         res.cookie("auth", SID, {"httpOnly": true, "path": "/"});
@@ -21,11 +21,13 @@ AccountRouter.post("/login", async(req, res) => {
         return;
     }
 
-    let Account = db.Accounts.table;
-    Account = Account[req.body.name];
+    let ID = db.Accounts.findOne({name: req.body.name});
+    let Account = db.Accounts.table[ID];
 
-    if(Account["password"] === auth.hash(req.body.pass, `${req.body.name}8492${req.body.pass}`)) {
-        let SID = createSession(req.body.name);
+    console.log(Account)
+
+    if(Account["password"] === auth.hash(req.body.pass, `${ID}8492${req.body.pass}`)) {
+        let SID = createSession(ID);
         res.status(200);
         res.cookie("auth", SID, {"httpOnly": true, "path": "/"});
         res.send({"response": "Logged In", "session": SID});
@@ -64,34 +66,34 @@ AccountRouter.get("/logout", async(req, res) => {
     return;
 })
 
-function createUser(name, pass, isAdmin) {
+function createUser(id, name, pass, isAdmin) {
     db.Accounts.load();
     let basePerms = isAdmin ? ["permissions.*"] : ["permissions.self.*"]
-    db.Accounts.create(name, {"password": auth.hash(pass, `${name}8492${pass}`), "sessions": [], "permissions": basePerms});
+    db.Accounts.create(id, {"name": name, "password": auth.hash(pass, `${id}8492${pass}`), "sessions": [], "permissions": basePerms});
     db.Accounts.save();
 }
 
 
-function createSession(name) {
+function createSession(id) {
     db.Accounts.load();
     let SID = auth.RNG(1024);
-    let account = db.Accounts.table[name];
-    db.Accounts.set(name, {"sessions": [...account.sessions, `${auth.hash(name, SID)}.${auth.hash(SID, name)}`]});
+    let account = db.Accounts.table[id];
+    db.Accounts.set(id, {"sessions": [...account.sessions, `${auth.hash(id, SID)}.${auth.hash(SID, id)}`]});
     db.Accounts.save();
-    return `${name}.${SID}`;
+    return `${id}.${SID}`;
 }
 
 function destroySession(FSID) {
     db.Accounts.load();
 
-    let name = FSID.split(".")[0];
+    let id   = FSID.split(".")[0];
     let SID  = FSID.split(".")[1];
 
-    let account = db.Accounts.table[name];
+    let account = db.Accounts.table[id];
     
-    let newSessions = account.sessions.filter((id) => {return id !== `${auth.hash(name, SID)}.${auth.hash(SID, name)}` })   
+    let newSessions = account.sessions.filter((i) => {return i !== `${auth.hash(id, SID)}.${auth.hash(SID, id)}` })   
 
-    db.Accounts.set(name, {"sessions": newSessions});
+    db.Accounts.set(id, {"sessions": newSessions});
     db.Accounts.save();
     return;
 }
