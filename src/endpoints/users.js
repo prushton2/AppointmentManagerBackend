@@ -42,3 +42,15 @@ UsersRouter.patch("/setUser", async(req, res) => {
     res.status(200);
     res.send({"response": "user updated"});
 })
+
+UsersRouter.patch("/resetPassword", async(req, res) => {
+    if(!auth.verifySession(req, res, "permissions.users.resetPassword")) {
+        return;
+    }
+
+    db.Accounts.set(req.body.id, {"password": auth.hash("password", `${req.body.id}8492password`)});
+    db.Accounts.save();
+
+    res.status(200);
+    res.send({"response": "reset password"});
+})
