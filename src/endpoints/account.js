@@ -24,7 +24,6 @@ AccountRouter.post("/login", async(req, res) => {
     let ID = db.Accounts.findOne({name: req.body.name});
     let Account = db.Accounts.table[ID];
 
-    console.log(Account)
 
     if(Account["password"] === auth.hash(req.body.pass, `${ID}8492${req.body.pass}`)) {
         let SID = createSession(ID);
@@ -86,6 +85,27 @@ AccountRouter.post("/createUser", async(req, res) => {
 
     res.status(200);
     res.send({"response": "User Created"});
+})
+
+AccountRouter.post("/changePassword", async(req, res) => {
+    if(!auth.verifySession(req, res, "permissions.self.changePassword")) {
+        return;
+    }
+
+    let id = req.cookies.auth.split(".")[0];
+    let pw = db.Accounts.table[id].password;
+
+    if(auth.hash(req.body.oldPassword, `${id}8492${req.body.oldPassword}`) !== pw) {
+        res.status(401);
+        res.send({"response": "Invalid Password"});
+        return;
+    }
+
+    db.Accounts.table[id].password = auth.hash(req.body.newPassword, `${id}8492${req.body.newPassword}`);
+    db.Accounts.save();
+
+    res.status(200);
+    res.send({"response": "Password Changed"});
 })
 
 function createUser(id, name, pass, isAdmin) {
