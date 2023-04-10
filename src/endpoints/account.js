@@ -131,6 +131,29 @@ AccountRouter.patch("/changeProp", async(req, res) => {
 })
 
 
+AccountRouter.post("/delete", async(req, res) => {
+    if(!auth.verifySession(req, res, "permissions.self.delete")) {
+        return;
+    }
+
+
+    let id = req.cookies.auth.split(".")[0];
+    let pw = db.Accounts.table[id].password;
+
+    if(auth.hash(req.body.password, `${id}8492${req.body.password}`) !== pw) {
+        res.status(401);
+        res.send({"response": "Invalid Password"});
+        return;
+    }
+
+    db.Accounts.load();
+    db.Accounts.delete(id);
+    db.Accounts.save();
+
+    res.status(200);
+    res.send({"response": "account deleted"});
+})
+
 
 
 function createUser(id, name, pass, isAdmin) {
