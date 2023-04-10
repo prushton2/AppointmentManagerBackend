@@ -108,6 +108,31 @@ AccountRouter.post("/changePassword", async(req, res) => {
     res.send({"response": "Password Changed"});
 })
 
+AccountRouter.patch("/changeProp", async(req, res) => {
+    if(!auth.verifySession(req, res, "permissions.self.changeProp")) {
+        return;
+    }
+
+    if(!req.body.prop in ["name", "email"]) {
+        res.status(405);
+        res.send({"response": "Change Prop not allowed on given resource"});
+        return;
+    }
+
+    let id = req.cookies.auth.split(".")[0];
+
+    db.Accounts.load();
+    console.log(id, {[req.body.prop]: req.body.value});
+    db.Accounts.set(id, {[req.body.prop]: req.body.value});
+    db.Accounts.save();
+
+    res.status(200);
+    res.send({"response": "Prop changed"});
+})
+
+
+
+
 function createUser(id, name, pass, isAdmin) {
     db.Accounts.load();
     let basePerms = isAdmin ? ["permissions.*"] : ["permissions.self.*"]
