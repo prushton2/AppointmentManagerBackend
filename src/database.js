@@ -93,3 +93,5 @@ class table {
 }
 
 module.exports.Accounts = new table("Accounts");
+module.exports.Appointments = new table("Appointments");
+module.exports.Slots = new table("Slots");

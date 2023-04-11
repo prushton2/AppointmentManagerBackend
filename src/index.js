@@ -7,6 +7,8 @@ const port               = 3010;
 
 const AccountRoute = require("./endpoints/account.js")
 const UsersRoute = require("./endpoints/users.js")
+const AppointmentsRouter = require("./endpoints/appointments.js")
+const SlotsRouter = require("./endpoints/slots.js")
 
 app.use(cookieParser());
 
@@ -39,6 +41,8 @@ onStart()
 //Routing for endpoints
 app.use("/account", AccountRoute);
 app.use("/users", UsersRoute);
+app.use("/appointments", AppointmentsRouter);
+app.use("/slots", SlotsRouter);
 
 app.all("*", async(req, res) => {
     res.status(404);
