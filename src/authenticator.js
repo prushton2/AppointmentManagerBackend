@@ -94,3 +94,41 @@ module.exports.hash = (string, salt) => {
 module.exports.RNG = (size) => {
     return CSPRNG(size, 36);
 }
+
+module.exports.createUser = (id, name, pass, isAdmin) => {
+    db.Accounts.load();
+    let basePerms = isAdmin ? ["permissions.*"] : ["permissions.self.*"]
+    db.Accounts.create(id, {"name": name, "password": module.exports.hash(pass, `${id}8492${pass}`), "sessions": [], "permissions": basePerms});
+    db.Accounts.save();
+}
+
+
+module.exports.createSession = (id) => {
+    db.Accounts.load();
+    let SID = module.exports.RNG(1024);
+    let account = db.Accounts.table[id];
+    db.Accounts.set(id, {"sessions": [...account.sessions, `${module.exports.hash(id, SID)}.${module.exports.hash(SID, id)}`]});
+    db.Accounts.save();
+    return `${id}.${SID}`;
+}
+
+module.exports.destroySession = (FSID) => {
+    db.Accounts.load();
+
+    let id   = FSID.split(".")[0];
+    let SID  = FSID.split(".")[1];
+
+    let account = db.Accounts.table[id];
+    
+    let newSessions = account.sessions.filter((i) => {return i !== `${module.exports.hash(id, SID)}.${module.exports.hash(SID, id)}` })   
+
+    db.Accounts.set(id, {"sessions": newSessions});
+    db.Accounts.save();
+    return;
+}
+
+module.exports.checkPassword = (givenPassword, ID) => {
+    db.Accounts.load();
+    let storedPassword = db.Accounts.table[ID].password;
+    return (storedPassword === module.exports.hash(givenPassword, `${ID}8492${givenPassword}`))
+}

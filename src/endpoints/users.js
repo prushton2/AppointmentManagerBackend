@@ -54,3 +54,25 @@ UsersRouter.patch("/resetPassword", async(req, res) => {
     res.status(200);
     res.send({"response": "reset password"});
 })
+
+UsersRouter.post("/createUser", async(req, res) => {
+    if(!auth.verifySession(req, res, "permissions.users.create")) {
+        return;
+    }
+
+    db.Accounts.load();
+    let highest;
+    for(let i in db.Accounts.table) {
+        highest = i;
+    }
+    highest = (parseInt(highest) + 1).toString();
+
+
+    auth.createUser(highest, req.body.name, req.body.password, false);
+    db.Accounts.load();
+    db.Accounts.set(highest, {"permissions": req.body.permissions, "email": req.body.email});
+    db.Accounts.save();
+
+    res.status(200);
+    res.send({"response": "User Created"});
+})
