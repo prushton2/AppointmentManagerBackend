@@ -10,8 +10,16 @@ servicesRouter.post("/create", async(req, res) => {
         return;
     }
 
+    db.Accounts.load();
+    let highest;
+    for(let i in db.Accounts.table) {
+        highest = i;
+    }
+    highest = (parseInt(highest) + 1).toString();
+
     db.Services.load()
-    db.Services.table[req.body.name] = {
+    db.Services.table[highest] = {
+        name: req.body.name,
         price: req.body.price, 
         description: req.body.description
     };
@@ -21,7 +29,7 @@ servicesRouter.post("/create", async(req, res) => {
     res.send({"response": "Service Created"});
 });
 
-servicesRouter.patch("/changeProp", async(req, res) => {
+servicesRouter.patch("/modify", async(req, res) => {
     if(!auth.verifySession(req, res, "permissions.services.modify")) {
         return;
     }
