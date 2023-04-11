@@ -76,3 +76,16 @@ UsersRouter.post("/createUser", async(req, res) => {
     res.status(200);
     res.send({"response": "User Created"});
 })
+
+UsersRouter.post("/delete", async(req, res) => {
+    if(!auth.verifySession(req, res, "permissions.users.delete")) {
+        return;
+    }
+
+    db.Accounts.load();
+    db.Accounts.delete(req.body.id);
+    db.Accounts.save();
+
+    res.status(200);
+    res.send({"response": "User Deleted"});
+})
