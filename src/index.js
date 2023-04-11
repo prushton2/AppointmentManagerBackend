@@ -9,6 +9,7 @@ const AccountRoute = require("./endpoints/account.js")
 const UsersRoute = require("./endpoints/users.js")
 const AppointmentsRouter = require("./endpoints/appointments.js")
 const SlotsRouter = require("./endpoints/slots.js")
+const ServicesRouter = require("./endpoints/services.js")
 
 app.use(cookieParser());
 
@@ -43,6 +44,7 @@ app.use("/account", AccountRoute);
 app.use("/users", UsersRoute);
 app.use("/appointments", AppointmentsRouter);
 app.use("/slots", SlotsRouter);
+app.use("/services", ServicesRouter);
 
 app.all("*", async(req, res) => {
     res.status(404);
