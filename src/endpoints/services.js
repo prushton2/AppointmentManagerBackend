@@ -35,7 +35,7 @@ servicesRouter.patch("/modify", async(req, res) => {
     }
 
 
-    if(!req.body.prop in ["price", "description"]) {
+    if(!req.body.prop in ["name", "price", "description"]) {
         res.status(405);
         res.send({"response": "Change Prop not allowed on given resource"});
         return;
@@ -43,7 +43,7 @@ servicesRouter.patch("/modify", async(req, res) => {
 
 
     db.Services.load()
-    db.Services.table[req.body.name][req.body.prop] = req.body.value;
+    db.Services.table[req.body.id][req.body.prop] = req.body.value;
     db.Services.save();
 
     res.status(200);
@@ -56,9 +56,16 @@ servicesRouter.post("/delete", async(req, res) => {
     }
 
     db.Services.load()
-    db.Services.delete[req.body.name];
+    db.Services.delete[req.body.id];
     db.Services.save();
 
     res.status(200);
     res.send({"response": "Service Deleted"});
 });
+
+servicesRouter.get("/getAll", async(req, res) => {
+    db.Services.load();
+
+    res.status(200);
+    res.send({"response": db.Services.table});
+})
