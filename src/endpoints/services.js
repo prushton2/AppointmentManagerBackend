@@ -10,19 +10,14 @@ servicesRouter.post("/create", async(req, res) => {
         return;
     }
 
-    db.Accounts.load();
+    db.Services.load();
     let highest;
-    for(let i in db.Accounts.table) {
+    for(let i in db.Services.table) {
         highest = i;
     }
     highest = (parseInt(highest) + 1).toString();
 
-    db.Services.load()
-    db.Services.table[highest] = {
-        name: req.body.name,
-        price: req.body.price, 
-        description: req.body.description
-    };
+    db.Services.create(highest, req.body.JSON);
     db.Services.save();
 
     res.status(200);
@@ -34,16 +29,8 @@ servicesRouter.patch("/modify", async(req, res) => {
         return;
     }
 
-
-    if(!req.body.prop in ["name", "price", "description"]) {
-        res.status(405);
-        res.send({"response": "Change Prop not allowed on given resource"});
-        return;
-    }
-
-
-    db.Services.load()
-    db.Services.table[req.body.id][req.body.prop] = req.body.value;
+    db.Services.load();
+    db.Services.set(req.body.id, req.body.newJSON);
     db.Services.save();
 
     res.status(200);
@@ -56,7 +43,7 @@ servicesRouter.post("/delete", async(req, res) => {
     }
 
     db.Services.load()
-    db.Services.delete[req.body.id];
+    db.Services.delete(req.body.id);
     db.Services.save();
 
     res.status(200);
