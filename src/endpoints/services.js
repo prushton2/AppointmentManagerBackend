@@ -66,6 +66,13 @@ servicesRouter.post("/delete", async(req, res) => {
 servicesRouter.get("/getAll", async(req, res) => {
     db.Services.load();
 
+    let services = [];
+    for(let i in db.Services.table) {
+        services.push({
+            ...db.Services.table[i], id: i
+        })
+    }
+
     res.status(200);
-    res.send({"response": db.Services.table});
+    res.send({"response": services});
 })
