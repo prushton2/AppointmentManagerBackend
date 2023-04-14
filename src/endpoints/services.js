@@ -9,9 +9,8 @@ servicesRouter.post("/create", async(req, res) => {
 	if(!auth.verifySession(req, res, "permissions.services.create")) {
 		return;
 	}
-
 	db.Services.load();
-	let highest;
+	let highest = "-1";
 	for(let i in db.Services.table) {
 		highest = i;
 	}
