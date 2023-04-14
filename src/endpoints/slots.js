@@ -22,9 +22,9 @@ slotsRouter.post("/create", async(req, res) => {
     db.Slots.create(highest, {
         "name": req.body.name,
         "services": req.body.services,
-        "people": req.body.people,
-        "availability": req.body.availability,
-        "padding": req.body.padding
+        "users": req.body.people,
+        "padding": req.body.padding,
+        "availability": req.body.availability
     })
     db.Slots.save();
 
